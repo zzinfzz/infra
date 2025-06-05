@@ -58,6 +58,12 @@ external: eth0
 # No authentication required
 socksmethod: none
 
+# CRITICAL: Resource limits to prevent OOM
+child.maxrequests: 100     # Restart child after 100 requests
+timeout.connect: 30        # 30 second connection timeout
+timeout.io: 300           # 5 minute I/O timeout
+
+
 # Allow connections from Ubuntu server
 client pass {
     from: 0.0.0.0/0 to: 0.0.0.0/0
@@ -72,6 +78,11 @@ socks pass {
 }
 EOF
 
+sudo mkdir -p /etc/systemd/system/sockd.service.d
+echo '[Service]
+MemoryMax=512M
+MemoryHigh=400M
+TasksMax=30' | sudo tee /etc/systemd/system/sockd.service.d/override.conf
 
 # Start the service
 sudo systemctl start sockd

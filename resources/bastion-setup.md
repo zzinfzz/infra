@@ -100,5 +100,36 @@ curl --proxy socks5://10.0.0.2:1080 https://httpbin.org/ip
 
 
 # On Ubuntu
-export ALL_PROXY=socks5://10.0.0.2:1080
+
+# Create kubelet proxy configuration directory
+sudo mkdir -p /etc/systemd/system/kubelet.service.d/
+
+# Create proxy configuration file for kubelet
+sudo tee /etc/systemd/system/kubelet.service.d/proxy.conf << 'EOF'
+[Service]
+Environment="HTTP_PROXY=socks5://10.0.0.2:1080"
+Environment="HTTPS_PROXY=socks5://10.0.0.2:1080"
+Environment="NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.20.0.0/16"
+EOF
+
+# Reload systemd configuration
+sudo systemctl daemon-reload
+
+# Restart kubelet to apply new settings
+sudo systemctl restart kubelet
+
+# Add proxy settings to system environment
+sudo tee -a /etc/environment << 'EOF'
+HTTP_PROXY=socks5://10.0.0.2:1080
+HTTPS_PROXY=socks5://10.0.0.2:1080
+NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.20.0.0/16
+EOF
+
+# bashrc file.
+export HTTP_PROXY=socks5://10.0.0.2:1080
+export HTTPS_PROXY=socks5://10.0.0.2:1080
+export NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.20.0.0/16
+
+# Test direct connection to Kubernetes API server once k8s is running
+curl -k https://172.20.0.1:443 --connect-timeout 5
 ```

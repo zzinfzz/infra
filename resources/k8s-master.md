@@ -249,22 +249,14 @@ sudo systemctl restart kubelet
 
 cilium install \
   --set ipam.mode=kubernetes \
-  --set routingMode=native \
-  --set autoDirectNodeRoutes=true \
-  --set ipv4NativeRoutingCIDR=192.168.0.0/16 \
-  --set enableIPv4Masquerade=true \
-  --set enableIPMasqAgent=false \
-  --set hubble.relay.enabled=false \
-  --set hubble.ui.enabled=false \
-  --set prometheus.enabled=false
-
-
-cilium upgrade \
+  --set routingMode=tunnel \
+  --set tunnelProtocol=vxlan \
+  --set kubeProxyReplacement=true \
   --set hubble.relay.enabled=true \
   --set hubble.ui.enabled=true \
   --set prometheus.enabled=true \
   --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,http}"
 
-
-
+# DNS IPv6
+resolvectl status
 ```

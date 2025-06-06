@@ -45,36 +45,42 @@ passwd proxyusr
 
 sudo dnf install dante-server
 
-sudo tee /etc/sockd.conf << 'EOF'
+# On proxy server (10.0.0.2), update the configuration
+sudo tee /etc/sockd.conf > /dev/null << 'EOF'
 # Basic logging
 logoutput: /var/log/sockd.log
 
-# Listen on all interfaces, port 1080
-internal: 0.0.0.0 port = 1080
+# Listen on both IPv4 and IPv6
+internal: 10.0.0.2 port = 1080        # IPv4 internal interface
+internal: :: port = 1080               # IPv6 - listen on all IPv6 addresses
 
-# Use the interface connected to internet
+# External interfaces
 external: eth0
 
 # No authentication required
-socksmethod: none
+method: none
 
-# CRITICAL: Resource limits to prevent OOM
-child.maxrequests: 100     # Restart child after 100 requests
-timeout.connect: 30        # 30 second connection timeout
-timeout.io: 300           # 5 minute I/O timeout
+# Resource limits
+child.maxrequests: 100
+timeout.connect: 30
+timeout.io: 300
 
-
-# Allow connections from Ubuntu server
+# Client access rules - allow internal network to reach anywhere
 client pass {
-    from: 0.0.0.0/0 to: 0.0.0.0/0
-    log: error connect disconnect
+    from: 10.0.0.0/16 to: 0.0.0.0/0          # IPv4 clients to IPv4 destinations
+}
+client pass {
+    from: 10.0.0.0/16 to: ::/0               # IPv4 clients to IPv6 destinations
 }
 
-# Allow SOCKS requests to anywhere
-socks pass {
-    from: 0.0.0.0/0 to: 0.0.0.0/0
-    protocol: tcp udp
-    log: error connect disconnect
+# SOCKS forwarding rules - allow connections to both IPv4 and IPv6
+pass {
+    from: 10.0.0.0/16 to: 0.0.0.0/0          # IPv4 to IPv4
+    command: connect
+}
+pass {
+    from: 10.0.0.0/16 to: ::/0               # IPv4 to IPv6
+    command: connect
 }
 EOF
 
@@ -120,7 +126,7 @@ sudo tee /etc/systemd/system/kubelet.service.d/proxy.conf << 'EOF'
 [Service]
 Environment="HTTP_PROXY=socks5://10.0.0.2:1080"
 Environment="HTTPS_PROXY=socks5://10.0.0.2:1080"
-Environment="NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.20.0.0/16"
+Environment="NO_PROXY=localhost,127.0.0.1,10.0.0.0/16,192.168.0.0/16,172.20.0.0/16"
 EOF
 
 # Reload systemd configuration
@@ -133,7 +139,7 @@ sudo systemctl restart kubelet
 sudo tee -a /etc/environment << 'EOF'
 HTTP_PROXY=socks5://10.0.0.2:1080
 HTTPS_PROXY=socks5://10.0.0.2:1080
-NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.20.0.0/16
+NO_PROXY=localhost,127.0.0.1,10.0.0.0/16,192.168.0.0/16,172.20.0.0/16
 EOF
 
 # bashrc file.
@@ -143,4 +149,16 @@ export NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.20.0.0/16
 
 # Test direct connection to Kubernetes API server once k8s is running
 curl -k https://172.20.0.1:443 --connect-timeout 5
+
+ls -la  /etc/resolv.conf 
+lrwxrwxrwx. 1 root root 39 Apr 23 06:16 /etc/resolv.conf -> ../run/systemd/resolve/stub-resolv.conf
+
+# DNS
+cat /etc/resolv.conf 
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+search .
+
+
 ```

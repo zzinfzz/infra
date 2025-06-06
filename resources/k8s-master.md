@@ -62,7 +62,7 @@ sudo tee /etc/systemd/system/containerd.service.d/proxy.conf > /dev/null << EOF
 [Service]
 Environment="HTTP_PROXY=socks5://10.0.0.2:1080"
 Environment="HTTPS_PROXY=socks5://10.0.0.2:1080"
-Environment="NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.20.0.0/16"
+Environment="NO_PROXY=localhost,127.0.0.1,10.0.0.0/16,192.168.0.0/16,172.20.0.0/16"
 EOF
 
 # Restart containerd
@@ -259,4 +259,11 @@ cilium install \
 
 # DNS IPv6
 resolvectl status
+
+kubectl run test-dns --image=busybox --rm -it --restart=Never -- nslookup api.hetzner.cloud
+
+kubectl logs -n kube-system <pod-name>
+
+kubectl label node kworker-1 node-role.kubernetes.io/worker=worker
+kubectl label node kworker-2 node-role.kubernetes.io/worker=worker
 ```

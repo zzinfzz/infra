@@ -145,7 +145,7 @@ EOF
 # bashrc file.
 export HTTP_PROXY=socks5://10.0.0.2:1080
 export HTTPS_PROXY=socks5://10.0.0.2:1080
-export NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.20.0.0/16
+export NO_PROXY=localhost,127.0.0.1,10.0.0.0/16,192.168.0.0/16,172.20.0.0/16
 
 # Test direct connection to Kubernetes API server once k8s is running
 curl -k https://172.20.0.1:443 --connect-timeout 5

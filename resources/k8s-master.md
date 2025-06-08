@@ -77,19 +77,19 @@ sudo apt install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
 # etcd in SSD
-sudo mkdir -p /mnt/HC_Volume_102640304/etcd
+sudo mkdir -p /mnt/HC_Volume_102701581/etcd
 
 
 # Create etcd data directory on the separate disk
-sudo mkdir -p /mnt/HC_Volume_102640304/etcd
-sudo chown -R root:root /mnt/HC_Volume_102640304/etcd
-sudo chmod 700 /mnt/HC_Volume_102640304/etcd
+sudo mkdir -p /mnt/HC_Volume_102701581/etcd
+sudo chown -R root:root /mnt/HC_Volume_102701581/etcd
+sudo chmod 700 /mnt/HC_Volume_102701581/etcd
 
 cat <<EOF > kubeadm-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: 10.0.1.3
+  advertiseAddress: 10.0.1.1
   bindPort: 6443
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
@@ -101,7 +101,7 @@ networking:
   serviceSubnet: "172.20.0.0/16"
 etcd:
   local:
-    dataDir: "/mnt/HC_Volume_102640304/etcd"
+    dataDir: "/mnt/HC_Volume_102701581/etcd"
 certificatesDir: "/etc/kubernetes/pki"
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
@@ -113,10 +113,12 @@ discovery:
     caCertHashes: []
 controlPlane:
   localAPIEndpoint:
-    advertiseAddress: 10.0.1.3
+    advertiseAddress: 10.0.1.1
     bindPort: 6443
   certificateKey: ""
 EOF
+
+sudo kubeadm init --config=kubeadm-config.yaml --upload-certs
 
 # Configure kubectl for your user
 mkdir -p $HOME/.kube
@@ -128,9 +130,9 @@ sudo kubeadm init phase upload-certs --upload-certs
 sudo kubeadm token create --print-join-command --certificate-key 14f903854ddacd54978a05eb7acf443fab20b7ecfabb2ff9ae8b2928c47e2421
 
 # Master II
-sudo mkdir -p /mnt/HC_Volume_102640419/etcd
-sudo chown -R root:root /mnt/HC_Volume_102640419/etcd
-sudo chmod 700 /mnt/HC_Volume_102640419/etcd
+sudo mkdir -p /mnt/HC_Volume_102701584/etcd
+sudo chown -R root:root /mnt/HC_Volume_102701584/etcd
+sudo chmod 700 /mnt/HC_Volume_102701584/etcd
 
 # Create join configuration for Master2
 cat <<EOF > kubeadm-join-master2.yaml
@@ -138,20 +140,20 @@ apiVersion: kubeadm.k8s.io/v1beta3
 kind: JoinConfiguration
 discovery:
   bootstrapToken:
-    token: "hc1kgf.rlkhkgubkiki8ulu"
+    token: "ujizu7.7rqb1ianj2cbqrz9"
     apiServerEndpoint: "10.0.0.3:6443"
-    caCertHashes: ["sha256:c19c0545cf7ab0839fd4dd95205adb17c1826c2920d582b5238bad4405d11bb3"]
+    caCertHashes: ["sha256:32a91f1c059e00e47f06aca2077aed43d5f76ced0763b491dd211ed8bbb1b48b"]
 controlPlane:
   localAPIEndpoint:
-    advertiseAddress: 10.0.1.1
+    advertiseAddress: 10.0.1.2
     bindPort: 6443
-  certificateKey: "b8c52a352529de818c9914aa12e5c3912e284f3d852f977293e1e4a07ade10a9"
+  certificateKey: "28e5fcd4b4a9ff6551c23d2501ac4f97fc655b83df6113066090d6fbfcef66f0"
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
 etcd:
   local:
-    dataDir: "/mnt/HC_Volume_102640419/etcd"
+    dataDir: "/mnt/HC_Volume_102701584/etcd"
 EOF
 
 # Join using the configuration file
@@ -159,11 +161,11 @@ sudo kubeadm join --config=kubeadm-join-master2.yaml
 
 # Master III
 df -h
-/mnt/HC_Volume_102640442
+/mnt/HC_Volume_102701588/etcd
 
-sudo mkdir -p /mnt/HC_Volume_102640442/etcd
-sudo chown -R root:root /mnt/HC_Volume_102640442/etcd
-sudo chmod 700 /mnt/HC_Volume_102640442/etcd
+sudo mkdir -p /mnt/HC_Volume_102701588/etcd
+sudo chown -R root:root /mnt/HC_Volume_102701588/etcd
+sudo chmod 700 /mnt/HC_Volume_102701588/etcd
 
 # Create join configuration for Master2
 
@@ -172,25 +174,25 @@ apiVersion: kubeadm.k8s.io/v1beta3
 kind: JoinConfiguration
 discovery:
   bootstrapToken:
-    token: "hc1kgf.rlkhkgubkiki8ulu"
+    token: "ujizu7.7rqb1ianj2cbqrz9"
     apiServerEndpoint: "10.0.0.3:6443"
-    caCertHashes: ["sha256:c19c0545cf7ab0839fd4dd95205adb17c1826c2920d582b5238bad4405d11bb3"]
+    caCertHashes: ["sha256:32a91f1c059e00e47f06aca2077aed43d5f76ced0763b491dd211ed8bbb1b48b"]
 controlPlane:
   localAPIEndpoint:
-    advertiseAddress: 10.0.1.2
+    advertiseAddress: 10.0.1.3
     bindPort: 6443
-  certificateKey: "b8c52a352529de818c9914aa12e5c3912e284f3d852f977293e1e4a07ade10a9"
+  certificateKey: "28e5fcd4b4a9ff6551c23d2501ac4f97fc655b83df6113066090d6fbfcef66f0"
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
 etcd:
   local:
-    dataDir: "/mnt/HC_Volume_102640442/etcd"
+    dataDir: "/mnt/HC_Volume_102701588/etcd"
 EOF
 
 sudo kubeadm join --config=kubeadm-join-master3.yaml
 
-
+# worker node
 
 useradd -m -s /bin/bash k8sworker
 usermod -aG sudo k8sworker
@@ -198,14 +200,14 @@ passwd k8sworker
 
 
 sudo kubeadm join 10.0.0.3:6443 \
-  --token hc1kgf.rlkhkgubkiki8ulu \
-  --discovery-token-ca-cert-hash sha256:c19c0545cf7ab0839fd4dd95205adb17c1826c2920d582b5238bad4405d11bb3
+  --token ujizu7.7rqb1ianj2cbqrz9 \
+  --discovery-token-ca-cert-hash sha256:32a91f1c059e00e47f06aca2077aed43d5f76ced0763b491dd211ed8bbb1b48b
 
 
 
 #CNI
 
-# Create bridge CNI configuration
+# Create bridge CNI configuration on all nodes
 sudo tee /etc/cni/net.d/10-bridge.conf > /dev/null << EOF
 {
     "cniVersion": "0.3.1",
@@ -247,6 +249,14 @@ sudo ip link delete cni0 2>/dev/null || true
 # Restart kubelet to clean up
 sudo systemctl restart kubelet
 
+CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+CLI_ARCH=amd64
+if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
+curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
+sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
+rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+
 cilium install \
   --set ipam.mode=kubernetes \
   --set routingMode=tunnel \
@@ -256,6 +266,52 @@ cilium install \
   --set hubble.ui.enabled=true \
   --set prometheus.enabled=true \
   --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,http}"
+  
+kubectl edit configmap coredns -n kube-system
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health {
+           lameduck 5s
+        }
+        ready
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+           pods insecure
+           fallthrough in-addr.arpa ip6.arpa
+           ttl 30
+        }
+        prometheus :9153
+        # Change this line from: forward . /etc/resolv.conf
+        forward . 8.8.8.8 8.8.4.4 {
+           max_concurrent 1000
+        }
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+
+# Restart CoreDNS to apply changes
+kubectl rollout restart deployment/coredns -n kube-system
+
+# Wait for rollout to complete
+kubectl rollout status deployment/coredns -n kube-system
+
+# Recommended: Include both ranges on all nodes NAT -> NAT.
+iptables -t nat -A POSTROUTING -s 192.168.0.0/16 ! -d 192.168.0.0/16 -j MASQUERADE
+iptables -t nat -A POSTROUTING -s 172.20.0.0/16 ! -d 172.20.0.0/16 -j MASQUERADE
+
+# Testing from Pod
+kubectl run nat-test --image=busybox:1.28 --rm -it --restart=Never -- sh
+
+cilium connectivity test --single-node
 
 # DNS IPv6
 resolvectl status

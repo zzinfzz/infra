@@ -76,7 +76,7 @@ ip route add default via 10.0.0.1
 
 # NAT server
 
-vim /etc/network/interfaces
+sudo vim /etc/network/interfaces
 
 auto eth0
 iface eth0 inet dhcp
@@ -85,11 +85,34 @@ iface eth0 inet dhcp
     
 # NAT Clients
 
-vim /etc/network/interfaces
+sudo vim /etc/network/interfaces
 
 auto enp7s0
 iface enp7s0 inet dhcp
     post-up ip route add default via 10.0.0.1
 
+# Manual add     
+sudo ip route add default via 10.0.0.1 dev enp7s0
+
+sudo vim /etc/systemd/system/default-route.service
+
+[Unit]
+Description=Add default route for enp7s0
+After=network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'sleep 5 && /sbin/ip route add default via 10.0.0.1 dev enp7s0 || true'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl daemon-reload
+sudo systemctl enable default-route.service
+sudo systemctl start default-route.service
+
+ping -c 3 8.8.8.8
 
 ```

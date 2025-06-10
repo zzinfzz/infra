@@ -8,6 +8,12 @@ helm repo update hcloud
 helm install hccm hcloud/hcloud-cloud-controller-manager -n kube-system
 
 # Use IPv4 DNS
+#DNS Policy options:
+#
+#Default - Uses the node's /etc/resolv.conf
+#ClusterFirst - Uses CoreDNS (default for pods)
+#None - What you used before with manual nameservers
+
 kubectl patch deployment -n kube-system hcloud-cloud-controller-manager --patch '
 {
   "spec": {
@@ -23,6 +29,18 @@ kubectl patch deployment -n kube-system hcloud-cloud-controller-manager --patch 
             {"name": "timeout", "value": "5"}
           ]
         }
+      }
+    }
+  }
+}'
+
+
+kubectl patch deployment -n kube-system hcloud-cloud-controller-manager --patch '
+{
+  "spec": {
+    "template": {
+      "spec": {
+        "dnsPolicy": "ClusterFirst"
       }
     }
   }

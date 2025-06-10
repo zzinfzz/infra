@@ -289,7 +289,7 @@ data:
         }
         prometheus :9153
         # Change this line from: forward . /etc/resolv.conf
-        forward . 8.8.8.8 8.8.4.4 {
+        forward . 8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844 {
            max_concurrent 1000
         }
         cache 30

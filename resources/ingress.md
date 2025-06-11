@@ -46,4 +46,30 @@ kubectl patch deployment -n kube-system hcloud-cloud-controller-manager --patch 
   }
 }'
 
+kubectl patch deployment -n kube-system hcloud-cloud-controller-manager --patch '
+{
+ "spec": {
+   "template": {
+     "spec": {
+       "containers": [
+         {
+           "name": "hcloud-cloud-controller-manager",
+           "env": [
+             {
+               "name": "HCLOUD_NETWORK",
+               "valueFrom": {
+                 "secretKeyRef": {
+                   "name": "hcloud",
+                   "key": "network"
+                 }
+               }
+             }
+           ]
+         }
+       ]
+     }
+   }
+ }
+}'
+
 ```

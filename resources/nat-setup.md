@@ -58,7 +58,7 @@ echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
 
 echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
 
-iptables -t nat -A POSTROUTING -s '10.0.0.0/16' -o eth0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -s '10.0.0.0/16' -o eth0 -j MASQUERADE
 
 
 # Hetzner automatically assigns 10.0.0.1 as the network gateway
@@ -78,10 +78,19 @@ ip route add default via 10.0.0.1
 
 sudo vim /etc/network/interfaces
 
-auto eth0
-iface eth0 inet dhcp
+auto enp7s0
+iface enp7s0 inet dhcp
     post-up echo 1 > /proc/sys/net/ipv4/ip_forward
     post-up iptables -t nat -A POSTROUTING -s '10.0.0.0/16' -o eth0 -j MASQUERADE
+    post-up ip route add 10.1.0.0/16 via 10.0.0.1 2>/dev/null || true
+
+# Add Route in gateway 10.1.0.0/16 (East) address via gateway and gateway via vpn hub. 
+
+# Apply the new configuration or system reboot
+sudo systemctl restart networking
+
+# Verify the route was added
+ip route show | grep "10.1.0.0/16"
     
 # NAT Clients
 

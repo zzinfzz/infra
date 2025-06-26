@@ -305,7 +305,7 @@ kubectl rollout restart deployment/coredns -n kube-system
 # Wait for rollout to complete
 kubectl rollout status deployment/coredns -n kube-system
 
-# Recommended: Include both ranges on all nodes NAT -> NAT.
+# Recommended: Include both ranges on all nodes NAT -> NAT. TODO Need to save on reboot.
 iptables -t nat -A POSTROUTING -s 192.168.0.0/16 ! -d 192.168.0.0/16 -j MASQUERADE
 iptables -t nat -A POSTROUTING -s 172.20.0.0/16 ! -d 172.20.0.0/16 -j MASQUERADE
 

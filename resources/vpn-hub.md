@@ -163,4 +163,18 @@ sudo systemctl enable wg-quick@wg0
 
 # Check status
 sudo wg show
+
+
+#For debugging 
+sudo tcpdump -i any -n host 10.0.102.1 or host 10.1.102.1
+sudo ufw status numbered
+
+Forword TCP route of 22
+sudo ufw route allow from 10.0.0.0/16 to 10.1.0.0/16
+sudo ufw route allow from 10.1.0.0/16 to 10.0.0.0/16
+
+sudo ufw route allow from 10.0.0.0/16 to 10.1.0.0/16 port 22
+sudo ufw route allow from 10.1.0.0/16 to 10.0.0.0/16 port 22
+
+
 ```
